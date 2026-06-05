@@ -1,5 +1,4 @@
 import { useTranslation } from 'next-i18next';
-import VariantPreviews from './VariantPreviews';
 
 interface GeneratedResultProps {
   image: string;
@@ -36,7 +35,7 @@ export default function GeneratedResult({
         >
           {remaining > 0
             ? t('ai.remainingGenerations', { remaining })
-            : t('ai.weeklyLimitUsed')}
+            : t('ai.dailyLimitUsed')}
           {remaining === 0 && (
             <button
               type="button"

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase/server';
-import { getWeekStart, FREE_WEEKLY_LIMIT } from '@/lib/date';
+import { getToday, FREE_DAILY_LIMIT } from '@/lib/date';
 import { getEffectiveSubscription, isProActive } from '@/lib/subscription';
 
 export default async function handler(
@@ -21,7 +21,7 @@ export default async function handler(
       // Return default free tier for unauthenticated users
       return res.status(200).json({
         remaining: 0,
-        total: FREE_WEEKLY_LIMIT,
+        total: FREE_DAILY_LIMIT,
         isUnlimited: false,
         isAuthenticated: false,
       });
@@ -49,25 +49,23 @@ export default async function handler(
     const totalCredits =
       credits?.reduce((sum, pkg) => sum + pkg.credits_remaining, 0) || 0;
 
-    // Check weekly usage
-    const today = new Date().toISOString().split('T')[0];
-    const weekStart = getWeekStart();
-    const { data: weeklyUsage } = await supabase
+    // Check today's free usage
+    const today = getToday();
+    const { data: dailyUsage } = await supabase
       .from('daily_usage')
       .select('count')
       .eq('user_id', user.id)
-      .gte('usage_date', weekStart)
-      .lte('usage_date', today);
+      .eq('usage_date', today);
 
-    const usedThisWeek =
-      weeklyUsage?.reduce((sum, r) => sum + (r.count || 0), 0) || 0;
-    const freeRemaining = Math.max(0, FREE_WEEKLY_LIMIT - usedThisWeek);
+    const usedToday =
+      dailyUsage?.reduce((sum, r) => sum + (r.count || 0), 0) || 0;
+    const freeRemaining = Math.max(0, FREE_DAILY_LIMIT - usedToday);
 
     return res.status(200).json({
       remaining: freeRemaining + totalCredits,
       freeRemaining,
       paidCredits: totalCredits,
-      total: FREE_WEEKLY_LIMIT,
+      total: FREE_DAILY_LIMIT,
       isUnlimited: false,
       isAuthenticated: true,
       planType: subscription?.plan_type || 'free',

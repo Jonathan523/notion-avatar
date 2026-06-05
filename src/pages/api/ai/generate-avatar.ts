@@ -7,7 +7,7 @@ import {
   base64ToBuffer,
   uploadImageToStorage,
 } from '@/lib/supabase/server';
-import { getWeekStart, FREE_WEEKLY_LIMIT } from '@/lib/date';
+import { getToday, FREE_DAILY_LIMIT } from '@/lib/date';
 import { addWatermark } from '@/lib/watermark';
 import { getEffectiveSubscription, isProActive } from '@/lib/subscription';
 
@@ -64,20 +64,18 @@ export default async function handler(
         canGenerate = true;
         isPaidUser = true;
       } else {
-        // Check free weekly limit
-        const today = new Date().toISOString().split('T')[0];
-        const weekStart = getWeekStart();
-        const { data: weeklyUsage } = await supabase
+        // Check free daily limit
+        const today = getToday();
+        const { data: dailyUsage } = await supabase
           .from('daily_usage')
           .select('count')
           .eq('user_id', user.id)
-          .gte('usage_date', weekStart)
-          .lte('usage_date', today);
+          .eq('usage_date', today);
 
-        const usedThisWeek =
-          weeklyUsage?.reduce((sum, r) => sum + (r.count || 0), 0) || 0;
+        const usedToday =
+          dailyUsage?.reduce((sum, r) => sum + (r.count || 0), 0) || 0;
 
-        if (usedThisWeek < FREE_WEEKLY_LIMIT) {
+        if (usedToday < FREE_DAILY_LIMIT) {
           canGenerate = true;
         } else {
           // Check credit packages
@@ -111,7 +109,7 @@ export default async function handler(
     if (!canGenerate) {
       return res.status(402).json({
         success: false,
-        error: 'Weekly limit reached. Please upgrade or purchase credits.',
+        error: 'Daily limit reached. Please upgrade or purchase credits.',
       });
     }
 
@@ -167,7 +165,7 @@ export default async function handler(
       const subscription = await getEffectiveSubscription(supabase, user!.id);
 
       if (!isProActive(subscription)) {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getToday();
 
         // Use RPC to atomically insert or increment daily usage count
         await serviceClient

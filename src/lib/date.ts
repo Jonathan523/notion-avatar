@@ -1,14 +1,11 @@
 import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
 
-dayjs.extend(isoWeek);
-
-/** Free tier weekly generation limit */
-export const FREE_WEEKLY_LIMIT = 3;
+/** Free tier daily generation limit */
+export const FREE_DAILY_LIMIT = 1;
 
 /**
- * Get ISO week start (Monday) as YYYY-MM-DD
+ * Get current day as YYYY-MM-DD
  */
-export function getWeekStart(date: Date = new Date()): string {
-  return dayjs(date).startOf('isoWeek').format('YYYY-MM-DD');
+export function getToday(date: Date = new Date()): string {
+  return dayjs(date).format('YYYY-MM-DD');
 }

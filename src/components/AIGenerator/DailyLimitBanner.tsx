@@ -45,7 +45,7 @@ export default function DailyLimitBanner({
           {freeRemaining !== undefined && freeRemaining > 0 && (
             <span className="text-gray-400">
               {' '}
-              {t('ai.freeThisWeekAndCredits', {
+              {t('ai.freeTodayAndCredits', {
                 free: freeRemaining,
                 credits: paidCredits,
               })}
@@ -58,7 +58,7 @@ export default function DailyLimitBanner({
     // Only free generations
     return (
       <div className="text-center text-sm text-gray-500 mt-6">
-        {t('ai.remainingFreeThisWeek', { remaining, total })}
+        {t('ai.remainingFreeToday', { remaining, total })}
       </div>
     );
   }
